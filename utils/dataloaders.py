@@ -456,7 +456,10 @@ class LoadImagesAndLabels(Dataset):
         self.image_weights = image_weights
         self.rect = False if image_weights else rect
         self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
-        self.mosaic_border = [-img_size // 2, -img_size // 2]
+        if isinstance(img_size, int):
+            self.mosaic_border = [-img_size // 2, -img_size // 2]
+        else:
+            self.mosaic_border = [-img_size[0] // 2, -img_size[1] // 2]
         self.stride = stride
         self.path = path
         self.albumentations = Albumentations(size=img_size) if augment else None
@@ -671,9 +674,10 @@ class LoadImagesAndLabels(Dataset):
 
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
-            img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
+            img, ratio, pad = letterbox(img, shape, auto=True, scaleup=self.augment)
+#            img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
             shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
-
+#            print('ggggggggggggggggggggg: ',shapes, img.shape, ratio,pad, flush=True)
             labels = self.labels[index].copy()
             if labels.size:  # normalized xywh to pixel xyxy format
                 labels[:, 1:] = xywhn2xyxy(labels[:, 1:], ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1])
@@ -735,7 +739,13 @@ class LoadImagesAndLabels(Dataset):
                 im = cv2.imread(f)  # BGR
                 assert im is not None, f'Image Not Found {f}'
             h0, w0 = im.shape[:2]  # orig hw
-            r = self.img_size / max(h0, w0)  # ratio
+            if isinstance(self.img_size, int):
+                r = self.img_size / max(h0, w0)  # ratio
+            else:
+                if self.img_size[0] / h0 < self.img_size[1]/w0:
+                    r = self.img_size[0] / h0
+                else:
+                    r = self.img_size[1]/w0
             if r != 1:  # if sizes are not equal
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
                 im = cv2.resize(im, (math.ceil(w0 * r), math.ceil(h0 * r)), interpolation=interp)

@@ -1,0 +1,9 @@
+names:
+- helmet
+- head
+- person
+nc: 3
+path: ./Dataset/images
+test: test
+train: train
+val: val

@@ -1,0 +1,17 @@
+names:
+- person
+- rider
+- car
+- bus
+- truck
+- bike
+- motor
+- traffic light
+- traffic sign
+- train
+
+nc: 10
+path: /media/lvsolo/CA89-5817/datasets/helmat/bdd100k_images/bdd100k/yolov5/images
+train: train
+val: val
+test: val
